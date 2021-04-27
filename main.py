@@ -74,7 +74,7 @@ def main():
         ]
     )
 
-    opt = keras.optimizers.RMSprop(lr=0.0001, decay=1e-6)
+    opt = keras.optimizers.Adam(lr=0.001)
 
     model.compile(
         loss="categorical_crossentropy",
