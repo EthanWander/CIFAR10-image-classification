@@ -4,6 +4,7 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers
+from tensorflow.keras.utils import to_categorical
 import math
 import random
 import matplotlib.pyplot as plt
@@ -43,27 +44,45 @@ class Display:
 
 
 def main():
-    display = Display()
+    # display = Display()
+    # X_TRAIN_gray = tf.image.rgb_to_grayscale(X_TRAIN)
+    # X_TEST_gray = tf.image.rgb_to_grayscale(X_TRAIN)
+    X_TRAIN_norm = keras.utils.normalize(X_TRAIN, axis=1)
+    X_TEST_norm = keras.utils.normalize(X_TEST, axis=1)
+    Y_TRAIN_categorical = to_categorical(Y_TRAIN)
+    Y_TEST_categorical = to_categorical(Y_TEST)
 
-    # X_TRAIN_norm = keras.utils.normalize(X_TRAIN, axis=1)
-    # X_TEST_norm = keras.utils.normalize(X_TEST, axis=1)
+    model = keras.Sequential(
+        [
+            keras.Input(shape=(32, 32, 3, )),
+            layers.Conv2D(32, 3, padding="same", activation="relu"),
+            layers.Conv2D(32, 3, padding="same", activation="relu"),
+            layers.Dropout(0.5),
+            layers.MaxPooling2D((2,2)),
+            layers.Conv2D(64, 3, padding="same", activation="relu"),
+            layers.Conv2D(64, 3, padding="same", activation="relu"),
+            layers.Dropout(0.5),
+            layers.MaxPooling2D((2,2)),
+            layers.Conv2D(128, 3, padding="same", activation="relu"),
+            layers.Conv2D(128, 3, padding="same", activation="relu"),
+            layers.Dropout(0.5),
+            layers.Flatten(),
+            layers.Dense(64, activation="relu"),
+            layers.Dropout(0.25),
+            layers.Dense(64, activation="relu"),
+            layers.Dense(10, activation="softmax")
+        ]
+    )
 
-    # model = keras.Sequential(
-    #     [
-    #         layers.Flatten(),
-    #         layers.Dense(128, activation="relu"),
-    #         layers.Dense(128, activation="relu"),
-    #         layers.Dense(10, activation="softmax")
-    #     ]
-    # )
+    opt = keras.optimizers.RMSprop(lr=0.0001, decay=1e-6)
 
-    # model.compile(
-    #     optimizer="adam",
-    #     loss="sparse_categorical_crossentropy",
-    #     metrics=["accuracy"]
-    # )
+    model.compile(
+        loss="categorical_crossentropy",
+        metrics=["accuracy"],
+        optimizer=opt
+    )
 
-    # model.fit(X_TRAIN_norm, Y_TRAIN, batch_size=50, epochs=12, validation_split=0.2, verbose=1)
+    fit = model.fit(X_TRAIN_norm, Y_TRAIN_categorical, validation_data=(X_TEST_norm, Y_TEST_categorical), batch_size=64, epochs=15, verbose=1)
 
     # predictions = model.predict([X_TEST_norm])
 
